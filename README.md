@@ -18,7 +18,7 @@ sed -i s/eula=false/eula=true/g eula.txt  # 同意
 テスト起動:
 
 ```sh
-java -Xmx1500M -jar paper-1.19.4-547.jar
+java -Xmx2G -jar paper-1.19.4-547.jar
 ```
 
 サービス化:
