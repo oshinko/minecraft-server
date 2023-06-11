@@ -3,22 +3,39 @@
 Amazon Linux 2023 & t4g.small:
 
 ```sh
+# パッケージをインストール
 sudo dnf update -y
 sudo dnf install java-17-amazon-corretto-devel -y
 
+# タイムゾーンを設定
 sudo timedatectl set-timezone Asia/Tokyo
 
-curl -O https://api.papermc.io/v2/projects/paper/versions/1.19.4/builds/547/downloads/paper-1.19.4-547.jar
+# ゲームディレクトリを作成
+mkdir minecraft
+cd minecraft
 
-java -jar paper-1.19.4-547.jar  # すぐに停止し、規約への同意を要求される
+# サーバーをダウンロード
+curl -o paper.jar https://api.papermc.io/v2/projects/paper/versions/1.20/builds/8/downloads/paper-1.20-8.jar
 
-sed -i s/eula=false/eula=true/g eula.txt  # 同意
+# 初回起動
+java -jar paper.jar  # すぐに停止し、規約への同意を要求される
+
+# 規約に同意
+sed -i s/^eula=false$/eula=true/g eula.txt
+
+# RCON を有効化
+read -sp "rcon.password: " password; echo  # パスワードを設定
+
+sed -i \
+    -e "s/^rcon.password=$/rcon.password=$password/g" \
+    -e s/^enable-rcon=false$/enable-rcon=true/g \
+    server.properties
 ```
 
 テスト起動:
 
 ```sh
-java -Xmx2G -jar paper-1.19.4-547.jar
+java -Xmx2G -jar paper.jar
 ```
 
 サービス化:
@@ -29,8 +46,8 @@ sudo bash -c "cat << EOF > /etc/systemd/system/minecraft.service
 Description=Minecraft Server
 
 [Service]
-WorkingDirectory=$HOME
-ExecStart=`which java` -Xmx2G -jar $HOME/paper-1.19.4-547.jar
+WorkingDirectory=$HOME/minecraft
+ExecStart=`which java` -Xmx2G -jar $HOME/minecraft/paper.jar
 Restart=always
 Type=simple
 User=`whoami`
