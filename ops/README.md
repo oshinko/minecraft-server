@@ -18,6 +18,6 @@ read -sp "OpenAI API Key: " openai_api_key; echo
 test:
 
 ```sh
-webhook=your-discord-webhook
+webhook=your-discord-webhook  # recommended
 WEBHOOK=$webhook OPENAI_API_KEY=$openai_api_key python -m tests
 ```
