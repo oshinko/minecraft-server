@@ -65,6 +65,7 @@ sudo systemctl restart minecraft.service
 In the case of introducing additional autonomous operation scripts for server maintenance:
 
 ```sh
+sudo dnf install git -y
 python3 -m venv $HOME/venv
 $HOME/venv/bin/python -m pip install "mcops @ git+https://github.com/oshinko/minecraft-server.git#subdirectory=ops"
 ```

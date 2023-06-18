@@ -54,16 +54,16 @@ class RconException(Exception):
 
 
 class Rcon:
-    def __init__(self, host='localhost',
-                 password=os.environ.get('RCON_PASSWORD')):
+    def __init__(self, host='localhost', password=None):
         self.hostname, *parts = host.split(':', 1)
         self.port = int(parts[0]) if parts else None
-        self.password = password
+        self.password = password or os.environ.get('RCON_PASSWORD')
 
     @contextlib.contextmanager
     def connect(self):
+        mcrcon_kwargs = dict() if self.port is None else dict(port=self.port)
         self._rcon = mcrcon.MCRcon(self.hostname, self.password,
-                                   port=self.port)
+                                   **mcrcon_kwargs)
 
         try:
             self._rcon.connect()
