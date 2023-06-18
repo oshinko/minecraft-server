@@ -1,6 +1,6 @@
 # Minecraft Server
 
-Amazon Linux 2023 & t4g.small:
+Amazon Linux 2023 (>=t4g.small):
 
 ```sh
 # パッケージをインストール
@@ -11,8 +11,8 @@ sudo dnf install java-17-amazon-corretto-devel -y
 sudo timedatectl set-timezone Asia/Tokyo
 
 # ゲームディレクトリを作成
-mkdir minecraft
-cd minecraft
+mkdir $HOME/minecraft
+cd $HOME/minecraft
 
 # サーバーをダウンロード
 curl -o paper.jar https://api.papermc.io/v2/projects/paper/versions/1.20/builds/8/downloads/paper-1.20-8.jar
@@ -24,21 +24,21 @@ java -jar paper.jar  # すぐに停止し、規約への同意を要求される
 sed -i s/^eula=false$/eula=true/g eula.txt
 
 # RCON を有効化
-read -sp "rcon.password: " password; echo  # パスワードを設定
+read -sp "rcon.password: " rcon_password; echo  # パスワードを設定
 
 sed -i \
-    -e "s/^rcon.password=$/rcon.password=$password/g" \
+    -e "s/^rcon.password=$/rcon.password=$rcon_password/g" \
     -e s/^enable-rcon=false$/enable-rcon=true/g \
     server.properties
 ```
 
-テスト起動:
+test run:
 
 ```sh
 java -Xmx2G -jar paper.jar
 ```
 
-サービス化:
+serve:
 
 ```sh
 sudo bash -c "cat << EOF > /etc/systemd/system/minecraft.service
@@ -58,4 +58,43 @@ EOF"
 sudo systemctl daemon-reload
 sudo systemctl enable minecraft.service
 sudo systemctl restart minecraft.service
+```
+
+## Operations
+
+In the case of introducing additional autonomous operation scripts for server maintenance:
+
+```sh
+python3 -m venv $HOME/venv
+$HOME/venv/bin/python -m pip install "mcops @ git+https://github.com/oshinko/minecraft-server.git#subdirectory=ops"
+```
+
+recommend setting up a Discord Webhook for notifications:
+
+```sh
+discord_webhook=your-discord-webhook
+```
+
+run:
+
+```sh
+RCON_PASSWORD=$rcon_password \
+WEBHOOK=$discord_webhook \
+$HOME/venv/bin/python -m mcops.auto.shutdown
+```
+
+if you use OpenAI LLM:
+
+```sh
+$HOME/venv/bin/python -m pip install "mcops @ git+https://github.com/oshinko/minecraft-server.git#subdirectory=ops[openai]"
+read -sp "OpenAI API Key: " openai_api_key; echo
+```
+
+run:
+
+```sh
+RCON_PASSWORD=$rcon_password \
+OPENAI_API_KEY=$openai_api_key \
+WEBHOOK=$discord_webhook \
+$HOME/venv/bin/python -m mcops.auto.shutdown
 ```
