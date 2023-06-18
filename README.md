@@ -70,13 +70,17 @@ python3 -m venv $HOME/venv
 $HOME/venv/bin/python -m pip install "mcops @ git+https://github.com/oshinko/minecraft-server.git#subdirectory=ops"
 ```
 
+### Automatic system shutdown
+
+Installs a service that automatically shuts down the system when there are no players playing.
+
 recommend setting up a Discord Webhook for notifications:
 
 ```sh
 discord_webhook=your-discord-webhook
 ```
 
-run:
+test run:
 
 ```sh
 RCON_PASSWORD=$rcon_password \
@@ -87,15 +91,53 @@ $HOME/venv/bin/python -m mcops.auto.shutdown
 if you use OpenAI LLM:
 
 ```sh
-$HOME/venv/bin/python -m pip install "mcops @ git+https://github.com/oshinko/minecraft-server.git#subdirectory=ops[openai]"
+$HOME/venv/bin/python -m pip install "mcops[openai] @ git+https://github.com/oshinko/minecraft-server.git#subdirectory=ops"
 read -sp "OpenAI API Key: " openai_api_key; echo
 ```
 
-run:
+test run:
 
 ```sh
 RCON_PASSWORD=$rcon_password \
 OPENAI_API_KEY=$openai_api_key \
 WEBHOOK=$discord_webhook \
 $HOME/venv/bin/python -m mcops.auto.shutdown
+```
+
+start timer:
+
+```sh
+sudo bash -c "cat << EOF > /etc/systemd/system/mcops-auto-shutdown.service
+[Unit]
+Description=Minecraft Server Auto Shutdown
+
+[Service]
+Environment=RCON_PASSWORD=$rcon_password
+Environment=OPENAI_API_KEY=$openai_api_key
+Environment=WEBHOOK=$discord_webhook
+WorkingDirectory=$HOME/minecraft
+ExecStart=$HOME/venv/bin/python -m mcops.auto.shutdown
+Type=oneshot
+User=`whoami`
+
+[Install]
+WantedBy=multi-user.target
+EOF"
+
+sudo sh -c "cat << EOF > /etc/systemd/system/mcops-auto-shutdown.timer
+[Unit]
+Description=Minecraft Server Auto Shutdown Timer
+
+[Timer]
+OnCalendar=hourly
+AccuracySec=1s
+Unit=mcops-auto-shutdown.service
+
+[Install]
+WantedBy=timers.target
+EOF"
+
+sudo systemctl daemon-reload
+sudo systemctl enable mcops-auto-shutdown.timer
+sudo systemctl restart mcops-auto-shutdown.timer
 ```

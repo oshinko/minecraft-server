@@ -77,7 +77,7 @@ class StrictExecute(Execute):
 
 
 class OpenAIExecute(Execute):
-    enable = 'OPENAI_API_KEY' in os.environ
+    enable = bool(os.environ.get('OPENAI_API_KEY'))
     model = os.environ.get('OPENAI_MODEL', 'gpt-4-0613')
 
     @property
