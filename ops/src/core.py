@@ -24,10 +24,16 @@ logger = logging.getLogger(parent_name)
 
 def do_webhook(content, username='Minecraft Server'):
     logger.info('do_webhook: content: ' + content)
+
+    webhook = os.environ.get('WEBHOOK')
+
+    if not webhook:
+        return
+
     data = dict(content=content, username=username)
 
     req = urllib.request.Request(
-        os.environ.get('WEBHOOK'),
+        webhook,
         data=json.dumps(data).encode('utf8'),
         headers={
             'content-type': 'application/json',
