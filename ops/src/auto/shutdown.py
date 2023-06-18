@@ -187,7 +187,7 @@ class OpenAIExecute(Execute):
                                             messages=messages,
                                             functions=functions)
 
-        assistant_message = resp['choices'][0]['message']
+        assistant_message = resp.choices[0].message
 
         function = assistant_message.get('function_call')
 
@@ -197,24 +197,24 @@ class OpenAIExecute(Execute):
             if f_kwargs:
                 f_kwargs = json.loads(f_kwargs)
 
-            f = getattr(core.chat_function, function['name'])
+            f = getattr(core.chat_function, function.name)
             f_resp = f(self, **f_kwargs)
 
             messages.append(assistant_message)
 
             messages.append({
                 'role': 'function',
-                'name': function['name'],
+                'name': function.name,
                 'content': json.dumps(f_resp)
             })
 
             resp = self.create_chat_completions(model=self.model,
                                                 messages=messages)
 
-            assistant_message = resp['choices'][0]['message']
+            assistant_message_content = resp.choices[0].message.get('content')
 
-            if assistant_message['content']:
-                self.do_webhook(assistant_message['content'])
+            if assistant_message_content:
+                self.do_webhook(assistant_message_content)
 
 
 if __name__ == '__main__':
