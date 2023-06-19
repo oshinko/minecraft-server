@@ -233,7 +233,10 @@ class ChatFunction:
                 p_description, = param.annotation.__metadata__
 
                 if param.default is inspect.Parameter.empty:
+                    default = None
                     required.append(p_name)
+                else:
+                    default = param.default
 
                 if p_type is bool:
                     p_json_type = 'boolean'
@@ -248,6 +251,9 @@ class ChatFunction:
                     'type': p_json_type,
                     'description': p_description
                 }
+
+                if default:
+                    properties[p_name]['default'] = default
 
             if properties:
                 self.parameters[function.__name__] = {
